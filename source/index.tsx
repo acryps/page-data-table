@@ -102,7 +102,10 @@ export class DataTable<ColumnType, RowType> extends Component {
 				}
 
 				content.push(<ui-row>
-					{rowHeaders.map(header => this.wrapInElement(header, 'ui-header'))}
+					<ui-row-headers>
+						{rowHeaders.map(header => this.wrapInElement(header, 'ui-header'))}
+					</ui-row-headers>
+					
 					{this.columns.map(column => this.wrapInElement(this.renderCell(column, item as RowType), 'ui-cell'))}
 				</ui-row>)
 			}
