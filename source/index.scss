@@ -1,3 +1,43 @@
 ui-data-table {
-	
+	display: table;
+
+	> ui-column-headers {
+		display: table-header-group;
+
+		> ui-pivot {
+			display: table-cell;
+		}
+
+		> ui-header {
+			display: table-cell;
+		}
+	}
+
+	> ui-content {
+		display: contents;
+
+		ui-group {
+			display: table-row-group;
+
+			> ui-header {
+				display: table-row;
+			}
+
+			> ui-row {
+				display: table-row;
+
+				> ui-row-headers {
+					display: table-row-group;
+
+					> ui-header {
+						display: table-cell;
+					}
+				}
+
+				> ui-cell {
+					display: table-cell;
+				}
+			}
+		}
+	}
 }
