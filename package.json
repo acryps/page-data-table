@@ -1,6 +1,6 @@
 {
 	"name": "@acryps/page-data-table",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"description": "acryps page data table",
 	"main": "built/index.js",
 	"scripts": {
