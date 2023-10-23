@@ -47,7 +47,7 @@ export class DataTable<ColumnType, RowType> extends Component {
 	}
 
 	render() {
-		const columnHeaders = this.columns.map(column => this.renderColumnHeader(column));
+		const columnHeaders = this.columns.map(column => this.wrapInElement(this.renderColumnHeader(column), 'ui-header'));
 		let pivots: Element[];
 		let content: Element;
 
@@ -105,7 +105,7 @@ export class DataTable<ColumnType, RowType> extends Component {
 					<ui-row-headers>
 						{rowHeaders.map(header => this.wrapInElement(header, 'ui-header'))}
 					</ui-row-headers>
-					
+
 					{this.columns.map(column => this.wrapInElement(this.renderCell(column, item as RowType), 'ui-cell'))}
 				</ui-row>)
 			}
