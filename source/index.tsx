@@ -69,7 +69,10 @@ export class DataTable<ColumnType, RowType> extends Component {
 
 		return <ui-data-table>
 			<ui-column-headers>
-				{pivots}
+				<ui-pivots>
+					{pivots}
+				</ui-pivots>
+				
 				{columnHeaders}
 			</ui-column-headers>
 

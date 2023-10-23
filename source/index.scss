@@ -4,8 +4,12 @@ ui-data-table {
 	> ui-column-headers {
 		display: table-header-group;
 
-		> ui-pivot {
-			display: table-cell;
+		> ui-pivots {
+			display: table-row-group;
+			
+			> ui-pivot {
+				display: table-cell;
+			}
 		}
 
 		> ui-header {
