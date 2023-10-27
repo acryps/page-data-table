@@ -461,6 +461,8 @@ export class DataTable<ColumnType, RowType> extends Component {
 				const cells = this.pasteSplitCells(content);
 
 				if (cells.length > 1 || rows.length > 1) {
+					event.preventDefault();
+
 					this.spread(field, cell, row, table, rows.map(row => this.pasteSplitCells(row)));
 				}
 			});
