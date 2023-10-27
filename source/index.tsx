@@ -22,7 +22,7 @@ export class DataTable<ColumnType, RowType> extends Component {
 
 	private columns: ColumnType[];
 	private rootGroup: DataTableGroup<RowType>;
-	
+
 	constructor(
 		columns?: ColumnType[],
 		rowsOrGroups?: RowType[] | DataTableGroup<RowType>[]
@@ -43,25 +43,25 @@ export class DataTable<ColumnType, RowType> extends Component {
 			this.rootGroup = new DataTableGroup<RowType>(null, []);
 		}
 
-		this.update();
+		requestAnimationFrame(() => this.update());
 	}
 
 	loadRows(rows: RowType[]) {
 		this.rootGroup.content = rows;
 
-		this.update();
+		requestAnimationFrame(() => this.update());
 	}
 
 	loadGroup(group: DataTableGroup<RowType>) {
 		this.rootGroup = group;
 
-		this.update();
+		requestAnimationFrame(() => this.update());
 	}
 
 	loadGroups(groups: DataTableGroup<RowType>[]) {
 		this.rootGroup.content = groups;
 
-		this.update();
+		requestAnimationFrame(() => this.update());
 	}
 
 	render() {
