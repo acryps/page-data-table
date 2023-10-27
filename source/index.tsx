@@ -17,7 +17,7 @@ export class DataTable<ColumnType, RowType> extends Component {
 	previousFieldShortcut = (event: KeyboardEvent) => event.key == 'Tab' && event.shiftKey;
 
 	// pasting functions
-	pasteSplitRows = (table: string) => table.split('\n');
+	pasteSplitRows = (table: string) => table.split('\n').map(line => line.replace('\r', ''));
 	pasteSplitCells = (row: string) => row.split('\t');
 
 	private columns: ColumnType[];
@@ -319,7 +319,8 @@ export class DataTable<ColumnType, RowType> extends Component {
 					input.value = value;
 
 					// trigger setters
-					input.blur();
+					requestAnimationFrame(() => input.focus());
+					requestAnimationFrame(() => input.blur());
 				}
 			}
 		}
@@ -329,7 +330,62 @@ export class DataTable<ColumnType, RowType> extends Component {
 	 * Write a bunch of data into the table at the current position
 	 */
 	spread(cursorField: RenderedField, cursorCell: RenderedCell, cursorRow: RenderedRow, table: RenderedRow[], data: string[][]) {
-		
+		if (!data.length) {
+			return;
+		}
+
+		const dataColumnCount = data[0].length;
+
+		const cursorRowIndex = table.indexOf(cursorRow);
+		const cursorCellIndex = cursorRow.cells.indexOf(cursorCell);
+
+		// find all fields that are present in the table starting at the cursor location
+		// 
+		// <A>     | <C> <D>
+		// <A> <B> |     <D>
+		//
+		// → <A> <B> <C> <D>
+		const cellFields: string[][] = [];
+
+		for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
+			const tableRow = table[cursorRowIndex + rowIndex];
+			
+			for (let cellIndex = cursorCellIndex; cellIndex < tableRow.cells.length; cellIndex++) {
+				for (let field of tableRow.cells[cellIndex].fields) {
+					const cellField = cellFields[cellIndex];
+
+					if (cellField && !cellField.includes(field.target)) {
+						cellField.push(field.target);
+					} else {
+						cellFields[cellIndex] = [field.target];
+					}
+				}
+			}
+		}
+
+		// limit the number of fields to the data length, offset by the cursors field index
+		// 
+		// focus was on <B>, 2 columns
+		// <A> <B> <C> <D> → <B> <C>
+		const cursorFieldIndex = cellFields[cursorCellIndex].indexOf(cursorField.target);
+		const insertingFields = cellFields.flatMap((targets, cellIndex) => targets.map(target => ({ cellIndex, target }))).slice(cursorFieldIndex, dataColumnCount + cursorFieldIndex);
+
+		// write data into the fields
+		// this will write data into the fields in order
+		// writeField will just do nothing if the field with the target name does not exist
+		for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
+			const tableRow = table[cursorRowIndex + rowIndex];
+			const dataRow = data[rowIndex];
+
+			for (let fieldIndex = 0; fieldIndex < insertingFields.length; fieldIndex++) {
+				const insertingField = insertingFields[fieldIndex];
+				const cell = tableRow.cells[insertingField.cellIndex];
+
+				if (cell) {
+					this.writeField(cell, insertingField.target, dataRow[fieldIndex]);
+				}
+			}
+		}
 	}
 
 	/**
