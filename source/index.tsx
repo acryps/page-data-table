@@ -299,6 +299,8 @@ export class DataTable<ColumnType, RowType> extends Component {
 
 					if (nextCell) {
 						this.focusField(nextCell, field.target);
+
+						event.preventDefault();
 					}
 				}
 
@@ -307,6 +309,8 @@ export class DataTable<ColumnType, RowType> extends Component {
 
 					if (previousCell) {
 						this.focusField(previousCell, field.target);
+
+						event.preventDefault();
 					}
 				}
 
@@ -315,6 +319,8 @@ export class DataTable<ColumnType, RowType> extends Component {
 
 					if (nextRow) {
 						this.focusField(nextRow.cells[row.cells.indexOf(cell)], field.target);
+
+						event.preventDefault();
 					}
 				}
 
@@ -323,15 +329,21 @@ export class DataTable<ColumnType, RowType> extends Component {
 
 					if (previousRow) {
 						this.focusField(previousRow.cells[row.cells.indexOf(cell)], field.target);
+
+						event.preventDefault();
 					}
 				}
 
 				if (this.nextFieldShortcut(event)) {
 					this.focusField(cell, (cell.fields[cell.fields.indexOf(field) + 1] ?? cell.fields[0]).target);
+
+					event.preventDefault();
 				}
 
 				if (this.previousFieldShortcut(event)) {
 					this.focusField(cell, (cell.fields[cell.fields.indexOf(field) - 1] ?? cell.fields[cell.fields.length - 1]).target);
+
+					event.preventDefault();
 				}
 			});
 		}
