@@ -1,14 +1,13 @@
 # page data table
 Create complex data entry tables with ease
 
-Supports shortcuts to switch between cells, fields and rows
-Smart paste from spreadsheet applications like Excel or Google Docs
-
-Expandable programming API
+- Supports shortcuts to switch between cells, fields and rows
+- Smart paste from spreadsheet applications like Excel or Google Docs
+- Simple, yet expandable API
 
 ## usage
 Extend the `DataTable` class and use your component in a page component.
-You can extend all of the functions of the DataTable or just use the default implementation
+You can extend all of the functions of the DataTable or just use the default implementation.
 The functions are documented in code
 
 ```
