@@ -16,6 +16,10 @@ export class DataTable<ColumnType, RowType> extends Component {
 	nextFieldShortcut = (event: KeyboardEvent) => event.key == 'Tab' && !event.shiftKey;
 	previousFieldShortcut = (event: KeyboardEvent) => event.key == 'Tab' && event.shiftKey;
 
+	// pasting functions
+	pasteSplitRows = (table: string) => table.split('\n');
+	pasteSplitCells = (row: string) => row.split('\t');
+
 	private columns: ColumnType[];
 	private rootGroup: DataTableGroup<RowType>;
 	
@@ -83,6 +87,7 @@ export class DataTable<ColumnType, RowType> extends Component {
 			for (let row of root.rows) {
 				for (let cell of row.cells) {
 					this.registerShortcuts(cell, row, root.rows);
+					this.registerPaste(cell, row, root.rows);
 				}
 			}
 			
@@ -301,6 +306,33 @@ export class DataTable<ColumnType, RowType> extends Component {
 	}
 
 	/**
+	 * Writes a value to a field
+	 * 
+	 * @param cell The cell where the field is in
+	 * @param target The fields target
+	 */
+	writeField(cell: RenderedCell, target: string, value: string) {
+		for (let field of cell.fields) {
+			if (field.target == target) {
+				if (field.source.tagName == 'INPUT' || field.source.tagName == 'SELECT') {
+					const input = field.source as HTMLInputElement;
+					input.value = value;
+
+					// trigger setters
+					input.blur();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Write a bunch of data into the table at the current position
+	 */
+	spread(cursorField: RenderedField, cursorCell: RenderedCell, cursorRow: RenderedRow, table: RenderedRow[], data: string[][]) {
+		
+	}
+
+	/**
 	 * Register keyboard shortcuts for one cell
 	 * 
 	 * @param cell The rendered cell
@@ -359,6 +391,21 @@ export class DataTable<ColumnType, RowType> extends Component {
 					this.focusField(cell, (cell.fields[cell.fields.indexOf(field) - 1] ?? cell.fields[cell.fields.length - 1]).target);
 
 					event.preventDefault();
+				}
+			});
+		}
+	}
+
+	registerPaste(cell: RenderedCell, row: RenderedRow, table: RenderedRow[]) {
+		for (let field of cell.fields) {
+			field.source.addEventListener('paste', event => {
+				const content = event.clipboardData.getData('text')?.trim() ?? '';
+
+				const rows = this.pasteSplitRows(content);
+				const cells = this.pasteSplitCells(content);
+
+				if (cells.length > 1 || rows.length > 1) {
+					this.spread(field, cell, row, table, rows.map(row => this.pasteSplitCells(row)));
 				}
 			});
 		}
