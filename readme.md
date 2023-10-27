@@ -8,7 +8,9 @@ Create complex data entry tables with ease
 ## usage
 Extend the `DataTable` class and use your component in a page component.
 You can extend all of the functions of the DataTable or just use the default implementation.
-The functions are documented in code
+The functions are documented in code.
+
+We do not provide default styles, except for styles required for the table to render as a table. Include them from `source/index.scss`.
 
 ```
 export class BookPricesComponent extends Component {
