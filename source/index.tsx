@@ -277,6 +277,12 @@ export class DataTable<ColumnType, RowType> extends Component {
 		return `${fields.indexOf(field)}`;
 	}
 
+	/**
+	 * Focuses a field in a cell by target name
+	 * 
+	 * @param cell The cell where the field is contained
+	 * @param target The cells target
+	 */
 	focusField(cell: RenderedCell, target: string) {
 		for (let field of cell.fields) {
 			if (field.target == target) {
