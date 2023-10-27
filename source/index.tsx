@@ -1,7 +1,21 @@
 import { Component, ComponentContent } from '@acryps/page';
 import { DataTableGroup } from './group';
+import { RenderedField } from './rendered/field';
+import { RenderedCell } from './rendered/cell';
+import { RenderedRow } from './rendered/row';
+import { RenderedGroup } from './rendered/group';
 
 export class DataTable<ColumnType, RowType> extends Component {
+	// target based navigation
+	nextCellShortcut = (event: KeyboardEvent) => event.key == 'ArrowRight';
+	previousCellShortcut = (event: KeyboardEvent) => event.key == 'ArrowLeft';
+	nextRowShortcut = (event: KeyboardEvent) => event.key == 'ArrowDown';
+	previousRowShortcut = (event: KeyboardEvent) => event.key == 'ArrowUp';
+
+	// index based navigation
+	nextFieldShortcut = (event: KeyboardEvent) => event.key == 'Tab' && !event.shiftKey;
+	previousFieldShortcut = (event: KeyboardEvent) => event.key == 'Tab' && event.shiftKey;
+
 	private columns: ColumnType[];
 	private rootGroup: DataTableGroup<RowType>;
 	
@@ -64,7 +78,15 @@ export class DataTable<ColumnType, RowType> extends Component {
 				pivots.push(this.wrapInElement(this.renderPivot(headerIndex), 'ui-pivot'));
 			}
 
-			content = this.renderGroup(this.rootGroup, firstRowHeaders);
+			const root = this.renderGroup(this.rootGroup, firstRowHeaders);
+
+			for (let row of root.rows) {
+				for (let cell of row.cells) {
+					this.registerShortcuts(cell, row, root.rows);
+				}
+			}
+			
+			content = root.source;
 		}
 
 		return <ui-data-table>
@@ -82,9 +104,10 @@ export class DataTable<ColumnType, RowType> extends Component {
 		</ui-data-table>;
 	}
 
-	private renderGroup(group: DataTableGroup<RowType>, firstHeaders: ComponentContent[] | null): Element {
-		let header;
-		const content = [];
+	private renderGroup(group: DataTableGroup<RowType>, firstHeaders: ComponentContent[] | null): RenderedGroup {
+		let header: ComponentContent;
+		const content: HTMLElement[] = [];
+		const rows: RenderedRow[] = [];
 
 		if (group.header !== undefined) {
 			header = this.renderGroupHeader(group);
@@ -92,7 +115,10 @@ export class DataTable<ColumnType, RowType> extends Component {
 
 		for (let item of group.content) {
 			if (item instanceof DataTableGroup) {
-				content.push(this.renderGroup(item, firstHeaders));
+				const child = this.renderGroup(item, firstHeaders);
+
+				rows.push(...child.rows);
+				content.push(child.source);
 			} else {
 				// reuse the first headers used to get the pivot cell count
 				let rowHeaders;
@@ -104,21 +130,43 @@ export class DataTable<ColumnType, RowType> extends Component {
 					rowHeaders = this.renderRowHeaders(item);
 				}
 
-				content.push(<ui-row>
-					<ui-row-headers>
-						{rowHeaders.map(header => this.wrapInElement(header, 'ui-header'))}
-					</ui-row-headers>
+				const cells: RenderedCell[] = [];
 
-					{this.columns.map(column => this.wrapInElement(this.renderCell(column, item as RowType), 'ui-cell'))}
-				</ui-row>)
+				for (let column of this.columns) {
+					const element = this.wrapInElement(this.renderCell(column, item as RowType), 'ui-cell');
+					const fieldElements = this.findFields(element);
+
+					const cell = new RenderedCell(
+						element,
+						fieldElements.map(element => new RenderedField(element, this.getFieldTarget(element, fieldElements)))
+					);
+
+					cells.push(cell);
+				}
+
+				const row = new RenderedRow(
+					<ui-row>
+						<ui-row-headers>
+							{rowHeaders.map(header => this.wrapInElement(header, 'ui-header'))}
+						</ui-row-headers>
+
+						{cells.map(cell => cell.source)}
+					</ui-row>,
+					cells
+				)
+
+				content.push(row.source);
 			}
 		}
 
-		return <ui-group>
-			{this.wrapInElement(header, 'ui-header')}
+		return new RenderedGroup(
+			<ui-group>
+				{this.wrapInElement(header, 'ui-header')}
 
-			{content}
-		</ui-group>;
+				{content}
+			</ui-group>,
+			rows
+		);
 	}
 
 	/**
@@ -191,9 +239,9 @@ export class DataTable<ColumnType, RowType> extends Component {
 	 * @returns Found fields
 	 */
 	findFields(rendered: ComponentContent) {
-		const fields: Element[] = [];
+		const fields: HTMLElement[] = [];
 
-		if (rendered instanceof Element) {
+		if (rendered instanceof HTMLElement) {
 			if (rendered.tagName == 'INPUT' || rendered.tagName == 'SELECT') {
 				fields.push(rendered);
 			}
@@ -226,11 +274,71 @@ export class DataTable<ColumnType, RowType> extends Component {
 		return `${fields.indexOf(field)}`;
 	}
 
+	focusField(cell: RenderedCell, target: string) {
+		for (let field of cell.fields) {
+			if (field.target == target) {
+				field.source.focus();
+			}
+		}
+	}
+
+	/**
+	 * Register keyboard shortcuts for one cell
+	 * 
+	 * @param cell The rendered cell
+	 * @param fields The fields within the cell
+	 */
+	registerShortcuts(cell: RenderedCell, row: RenderedRow, rows: RenderedRow[]) {
+		for (let field of cell.fields) {
+			field.source.addEventListener('keydown', event => {
+				if (this.nextCellShortcut(event)) {
+					const nextCell = row[row.cells.indexOf(cell) + 1];
+
+					if (nextCell) {
+						this.focusField(nextCell, field.target);
+					}
+				}
+
+				if (this.previousCellShortcut(event)) {
+					const previousCell = row[row.cells.indexOf(cell) - 1];
+
+					if (previousCell) {
+						this.focusField(previousCell, field.target);
+					}
+				}
+
+				if (this.nextRowShortcut(event)) {
+					const nextRow = rows[rows.indexOf(row) + 1];
+
+					if (nextRow) {
+						this.focusField(nextRow[row.cells.indexOf(cell)], field.target);
+					}
+				}
+
+				if (this.previousRowShortcut(event)) {
+					const previousRow = rows[rows.indexOf(row) - 1];
+
+					if (previousRow) {
+						this.focusField(previousRow[row.cells.indexOf(cell)], field.target);
+					}
+				}
+
+				if (this.nextFieldShortcut(event)) {
+					this.focusField(cell, (cell.fields[cell.fields.indexOf(field) + 1] ?? cell.fields[0]).target);
+				}
+
+				if (this.previousFieldShortcut(event)) {
+					this.focusField(cell, (cell.fields[cell.fields.indexOf(field) - 1] ?? cell.fields[cell.fields.length - 1]).target);
+				}
+			});
+		}
+	}
+
 	private wrapInElement(content: ComponentContent, tagName: string) {
-		if (content instanceof Element && content.tagName.toLowerCase() == tagName.toLowerCase()) {
+		if (content instanceof HTMLElement && content.tagName.toLowerCase() == tagName.toLowerCase()) {
 			return content;
 		}
 
-		return this.createElement(tagName, null, content);
+		return this.createElement(tagName, null, content) as HTMLElement;
 	}
 }
