@@ -287,6 +287,15 @@ export class DataTable<ColumnType, RowType> extends Component {
 		for (let field of cell.fields) {
 			if (field.target == target) {
 				field.source.focus();
+
+				// focus entire text if possible
+				if (field.source.tagName == 'INPUT') {
+					const input = field.source as HTMLInputElement;
+
+					requestAnimationFrame(() => {
+						input.setSelectionRange(0, input.value.length);
+					});
+				}
 			}
 		}
 	}
