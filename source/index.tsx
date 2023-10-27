@@ -155,6 +155,7 @@ export class DataTable<ColumnType, RowType> extends Component {
 					cells
 				)
 
+				rows.push(row);
 				content.push(row.source);
 			}
 		}
@@ -244,6 +245,8 @@ export class DataTable<ColumnType, RowType> extends Component {
 		if (rendered instanceof HTMLElement) {
 			if (rendered.tagName == 'INPUT' || rendered.tagName == 'SELECT') {
 				fields.push(rendered);
+			} else if (rendered.childElementCount) {
+				fields.push(...this.findFields([...rendered.children]));
 			}
 		} else if (Array.isArray(rendered)) {
 			for (let item of rendered) {
@@ -288,11 +291,11 @@ export class DataTable<ColumnType, RowType> extends Component {
 	 * @param cell The rendered cell
 	 * @param fields The fields within the cell
 	 */
-	registerShortcuts(cell: RenderedCell, row: RenderedRow, rows: RenderedRow[]) {
+	registerShortcuts(cell: RenderedCell, row: RenderedRow, table: RenderedRow[]) {
 		for (let field of cell.fields) {
 			field.source.addEventListener('keydown', event => {
 				if (this.nextCellShortcut(event)) {
-					const nextCell = row[row.cells.indexOf(cell) + 1];
+					const nextCell = row.cells[row.cells.indexOf(cell) + 1];
 
 					if (nextCell) {
 						this.focusField(nextCell, field.target);
@@ -300,7 +303,7 @@ export class DataTable<ColumnType, RowType> extends Component {
 				}
 
 				if (this.previousCellShortcut(event)) {
-					const previousCell = row[row.cells.indexOf(cell) - 1];
+					const previousCell = row.cells[row.cells.indexOf(cell) - 1];
 
 					if (previousCell) {
 						this.focusField(previousCell, field.target);
@@ -308,18 +311,18 @@ export class DataTable<ColumnType, RowType> extends Component {
 				}
 
 				if (this.nextRowShortcut(event)) {
-					const nextRow = rows[rows.indexOf(row) + 1];
+					const nextRow = table[table.indexOf(row) + 1];
 
 					if (nextRow) {
-						this.focusField(nextRow[row.cells.indexOf(cell)], field.target);
+						this.focusField(nextRow.cells[row.cells.indexOf(cell)], field.target);
 					}
 				}
 
 				if (this.previousRowShortcut(event)) {
-					const previousRow = rows[rows.indexOf(row) - 1];
+					const previousRow = table[table.indexOf(row) - 1];
 
 					if (previousRow) {
-						this.focusField(previousRow[row.cells.indexOf(cell)], field.target);
+						this.focusField(previousRow.cells[row.cells.indexOf(cell)], field.target);
 					}
 				}
 
