@@ -206,6 +206,26 @@ export class DataTable<ColumnType, RowType> extends Component {
 		return fields;
 	}
 
+	/**
+	 * Gets the fields target. 
+	 * When the user uses the arrow keys to move between cells, not the field at the same index but the cell with the same target will be picked
+	 * If no target is set (using `ui-target`), the target will just be the fields index
+	 * 
+	 * @example Field jumping with arrow key
+	 * Table Row: <A> <C> | <A> <B> <C>
+	 * Pressing [→] while on <C> (field 2) of cell 1 will focus <C> (field 3) on cell 2
+	 * 
+	 * @param field The current field
+	 * @param fields All fields in this cell
+	 */
+	getFieldTarget(field: Element, fields: Element[]) {
+		if (field.hasAttribute('ui-target')) {
+			return field.getAttribute('ui-target');
+		}
+
+		return `${fields.indexOf(field)}`;
+	}
+
 	private wrapInElement(content: ComponentContent, tagName: string) {
 		if (content instanceof Element && content.tagName.toLowerCase() == tagName.toLowerCase()) {
 			return content;
