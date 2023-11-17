@@ -26,7 +26,7 @@ export class DataTableGroup<RowType> {
 				if (item instanceof DataTableGroup) {
 					const first = item.firstRow;
 
-					if (!first) {
+					if (first) {
 						return first;
 					}
 				} else {
