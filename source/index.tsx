@@ -120,7 +120,7 @@ export class DataTable<ColumnType, RowType> extends Component {
 
 		for (let item of group.content) {
 			if (item instanceof DataTableGroup) {
-				const child = this.renderGroup(item, firstHeaders);
+				const child = this.renderGroup(item, null);
 
 				rows.push(...child.rows);
 				content.push(child.source);
