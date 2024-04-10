@@ -84,13 +84,17 @@ export class DataTable<ColumnType, RowType> extends Component {
 
 			const root = this.renderGroup(this.rootGroup, firstRowHeaders);
 
-			for (let row of root.rows) {
-				for (let cell of row.cells) {
-					this.registerShortcuts(cell, row, root.rows);
-					this.registerPaste(cell, row, root.rows);
+			requestAnimationFrame(() => {
+				for (let row of root.rows) {
+					for (let cell of row.cells) {
+						cell.fields = this.findFields(cell.source);
+
+						this.registerShortcuts(cell, row, root.rows);
+						this.registerPaste(cell, row, root.rows);
+					}
 				}
-			}
-			
+			});
+
 			content = root.source;
 		}
 
@@ -135,19 +139,9 @@ export class DataTable<ColumnType, RowType> extends Component {
 					rowHeaders = this.renderRowHeaders(item);
 				}
 
-				const cells: RenderedCell[] = [];
-
-				for (let column of this.columns) {
-					const element = this.wrapInElement(this.renderCell(column, item as RowType), 'ui-cell');
-					const fieldElements = this.findFields(element);
-
-					const cell = new RenderedCell(
-						element,
-						fieldElements.map(element => new RenderedField(element, this.getFieldTarget(element, fieldElements)))
-					);
-
-					cells.push(cell);
-				}
+				const cells = this.columns.map(column => new RenderedCell(
+					this.wrapInElement(this.renderCell(column, item as RowType), 'ui-cell')
+				));
 
 				const row = new RenderedRow(
 					<ui-row>
@@ -244,18 +238,20 @@ export class DataTable<ColumnType, RowType> extends Component {
 	 * @param rendered The rendered cell
 	 * @returns Found fields
 	 */
-	findFields(rendered: ComponentContent) {
-		const fields: HTMLElement[] = [];
+	findFields(rendered: HTMLElement) {
+		const fields: RenderedField[] = [];
 
-		if (rendered instanceof HTMLElement) {
-			if (rendered.tagName == 'INPUT' || rendered.tagName == 'SELECT') {
-				fields.push(rendered);
-			} else if (rendered.childElementCount) {
-				fields.push(...this.findFields([...rendered.children]));
+		if (rendered.tagName == 'INPUT' || rendered.tagName == 'SELECT') {
+			const target = rendered.getAttribute('ui-target');
+
+			if (target) {
+				fields.push(
+					new RenderedField(rendered, target)
+				);
 			}
-		} else if (Array.isArray(rendered)) {
-			for (let item of rendered) {
-				fields.push(...this.findFields(item));
+		} else if (rendered.childElementCount) {
+			for (const child of rendered.children) {
+				fields.push(...this.findFields(child as HTMLElement));
 			}
 		}
 

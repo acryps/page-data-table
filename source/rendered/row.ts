@@ -1,5 +1,4 @@
 import { RenderedCell } from "./cell";
-import { RenderedField } from "./field";
 
 export class RenderedRow {
 	constructor(
