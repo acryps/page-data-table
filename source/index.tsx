@@ -297,9 +297,7 @@ export class DataTable<ColumnType, RowType> extends Component {
 				if (field.source.tagName == 'INPUT') {
 					const input = field.source as HTMLInputElement;
 
-					requestAnimationFrame(() => {
-						input.setSelectionRange(0, input.value.length);
-					});
+					requestAnimationFrame(() => input.select());
 				}
 			}
 		}
